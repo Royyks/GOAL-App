@@ -635,21 +635,25 @@ const HomeView = ({ t, lang, setView, startScanner, toggleLang, handleCategoryCl
 
         <h1 className="text-xl font-black tracking-tighter flex items-center gap-2">
 
-          <h1 className="text-xl font-black tracking-tighter flex items-center gap-2">
+          <h1 className="text-xl font-black tracking-tighter flex items-center gap-3">
+            {/* The Mascot acts as the hidden button */}
             <WatsonsMascot 
-              // This adds a visual glow when Mock Mode is ON
-              className={`w-8 h-8 cursor-pointer transition-all ${isMockMode ? 'drop-shadow-[0_0_8px_rgba(20,184,166,0.8)] saturate-150' : ''}`} 
-              // This makes the mascot clickable to toggle modes
-              onClick={() => {
-                const nextMode = !isMockMode;
-                setIsMockMode(nextMode);
-                // Optional: Add a small toast or alert so you know it worked
-                console.log(nextMode ? "🛠️ Mock Mode Enabled" : "🌐 Live API Enabled");
-              }}
-            /> 
-            {t.appTitle}
-            {/* 3. Label: Shows a tiny 'MOCK' tag when active */}
-            {isMockMode && <span className="text-[8px] bg-orange-500 text-white px-1 rounded ml-1 animate-pulse">MOCK</span>}
+              className="w-9 h-9 cursor-pointer active:scale-95 transition-transform" 
+              onClick={() => setIsMockMode(!isMockMode)} 
+            />
+            
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="leading-none">{t.appTitle}</span>
+                {/* The Status Orb: Teal when Mock is ON, Gray when OFF */}
+                <div className={`w-2 h-2 rounded-full transition-colors duration-500 ${isMockMode ? 'bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.8)]' : 'bg-slate-700'}`} />
+              </div>
+              
+              {/* Micro-text status label for "Pro" look */}
+              <span className={`text-[7px] font-black uppercase tracking-[0.15em] mt-1 transition-opacity duration-500 ${isMockMode ? 'text-teal-400 opacity-100' : 'text-slate-500 opacity-40'}`}>
+                {isMockMode ? "HHT_OFFLINE_CACHE" : "HHT_CLOUD_SYNC"}
+              </span>
+            </div>
           </h1>
 
         </h1>
@@ -1429,13 +1433,13 @@ const callGemini = async (prompt, systemInstruction, productId = "DEFAULT") => {
 
     try {
 
-      const result = await callGemini("Generate pitch.", systemPrompt);
+      const result = await callGemini("Generate pitch.", systemPrompt, product.id, currentLang);
 
-      setSalesPitch(result || `- **${titles.p1}**: Saving available!\n- **${titles.p2}**: 4.9 stars!\n- **${titles.p3}**: Fast relief!`);
+      setSalesPitch(result);
 
     } catch (e) {
 
-      setSalesPitch(currentLang === "English" ? `- **Benefits**: Best value.\n- **Rating**: 4.9 stars.` : `- **優勢**: 享有價格優惠。\n- **評分**: 高達 4.9 分。`);
+      setSalesPitch(MOCK_RESPONSES[currentLang]["DEFAULT"]);
 
     } finally {
 
