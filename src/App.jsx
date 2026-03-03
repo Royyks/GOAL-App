@@ -1287,9 +1287,10 @@ const App = () => {
 
 const callGemini = async (prompt, systemInstruction) => {
   let retries = 0;
-  while (retries < 5) {
+  const maxRetries = 3;
+  
+  while (retries < maxRetries) {
     try {
-      // UPDATED MODEL NAME BELOW
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1298,19 +1299,21 @@ const callGemini = async (prompt, systemInstruction) => {
           systemInstruction: { parts: [{ text: systemInstruction }] }
         })
       });
-      
-      if (!response.ok) {
-        const errData = await response.json();
-        console.error("Gemini Error Details:", errData);
-        throw new Error(`API Error: ${response.status}`);
+
+      if (response.status === 429) {
+        // If rate limited, wait longer each time (2s, 4s, 8s)
+        retries++;
+        const waitTime = Math.pow(2, retries) * 1000;
+        console.warn(`Rate limited. Retrying in ${waitTime/1000}s...`);
+        await new Promise(r => setTimeout(r, waitTime));
+        continue; 
       }
-      
+
       const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      return typeof text === 'string' ? text : "";
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     } catch (e) {
       retries++;
-      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, retries)));
+      if (retries === maxRetries) throw e;
     }
   }
 };
