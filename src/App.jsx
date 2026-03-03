@@ -80,10 +80,9 @@ import {
 
 
 
-// --- Configuration & Mock Data ---
-
-const apiKey = ""; // Provided at runtime
-
+// --- Configuration ---
+// This looks for the Vercel environment variable
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || ""; 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'asw-goal-nin-jiom';
 
 
