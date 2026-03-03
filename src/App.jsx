@@ -87,15 +87,28 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'asw-goal-nin-jiom';
 
 // The Mock Data Logic Add this near the top of your App.jsx
 const MOCK_RESPONSES = {
-  "NIN001": `- **產品優勢**: 京都念慈菴枇杷膏含有天然草本成分，能有效舒緩喉嚨痛及咳嗽，是屈臣氏健康類別的明星產品。配合 App 下載現省 $5.2，買 2 件更享 9 折！
+  "Traditional Chinese": {
+    "NIN001": `- **產品優勢**: 京都念慈菴枇杷膏含有天然草本成分，能有效舒緩喉嚨痛及咳嗽，是屈臣氏健康類別的明星產品。配合 App 下載現省 $5.2，買 2 件更享 9 折！
 - **網上評分**: 在屈臣氏網店獲得 4.9/5 星高分好評。
 - **用家反饋**: 多數用家稱其為「喉嚨救星」，成分天然讓人放心。`,
-  "FORT001": `- **產品優勢**: 特強幸福傷風咳素配方強效，不傷腸胃且不致瞌睡。目前店內缺貨，但透過 HHT 系統下單可享 O+O 快遞送貨，App 會員首購立減 $20！
+    "FORT001": `- **產品優勢**: 特強幸福傷風咳素配方強效，不傷腸胃且不致瞌睡。目前店內缺貨，但透過 HHT 系統下單可享 O+O 快遞送貨，App 會員首購立減 $20！
 - **網上評分**: 網民評分為 4.8/5 星。
 - **用家反饋**: 用家一致認為「見效快」，適合上班族。`,
-  "DEFAULT": `- **產品優勢**: 這款產品目前在屈臣氏享有限時優惠。建議引導顧客下載 App 查看專享價。
+    "DEFAULT": `- **產品優勢**: 這款產品目前在屈臣氏享有限時優惠。建議引導顧客下載 App 查看專享價。
 - **網上評分**: 高達 4.8 星好評。
 - **用家反饋**: 用家表示性價比極高，值得回購。`
+  },
+  "English": {
+    "NIN001": `- **Product Benefits**: Nin Jiom Pei Pa Koa features natural herbal ingredients to effectively soothe sore throats and coughs. It's a Watsons bestseller! Save $5.2 via App, plus 10% off for 2 items.
+- **Online Rating**: Highly rated at 4.9/5 stars on the Watsons eStore.
+- **User Feedback**: Many users call it a "throat savior" and appreciate the natural formula.`,
+    "FORT001": `- **Product Benefits**: Fortune Coltalin-GP Extra offers a powerful formula that is gentle on the stomach and non-drowsy. Currently OOS on shelf, but available via O+O Express Delivery. App members get $20 off first order!
+- **Online Rating**: Rated 4.8/5 stars by online shoppers.
+- **User Feedback**: Users consistently mention its "fast-acting relief," ideal for busy professionals.`,
+    "DEFAULT": `- **Product Benefits**: This item is currently on a limited-time promotion at Watsons. We recommend encouraging the customer to download the App for exclusive pricing.
+- **Online Rating**: Rated 4.8 stars by verified buyers.
+- **User Feedback**: Users report high value for money and a high likelihood of repurchase.`
+  }
 };
 
 // --- Mascot Component (屈仔) ---
