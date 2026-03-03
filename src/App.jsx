@@ -978,37 +978,22 @@ const ResultView = ({
 
             <div className={`text-slate-700 leading-snug space-y-4 ${lang === "English" ? "text-lg" : "text-xl tracking-tight"}`}>
 
-              {salesPitch.split('\n').filter(line => line.trim().length > 0).map((line, i) => {
-
-                const cleanLine = line.replace(/^-/, '').trim();
-
-                const boldMatch = cleanLine.match(/^\*\*(.*?)\*\*:(.*)/);
-
-                
-
-                return (
-
-                  <div key={i} className="flex gap-3 items-start group">
-
-                    <div className="w-2.5 h-2.5 bg-teal-500 rounded-full mt-1.5 shrink-0 shadow-[0_0_8px_rgba(20,184,166,0.3)]"></div>
-
-                    {boldMatch ? (
-
-                      <span className="font-normal">
-
-                        <strong className="font-black text-slate-900 border-b-2 border-teal-100">{boldMatch[1]}</strong>: {boldMatch[2]}
-
-                      </span>
-
-                    ) : (
-
-                      <span className="font-bold">{cleanLine}</span>
-
-                    )}
-
-                  </div>
-
-                );
+              {(salesPitch || "").split('\n').filter(line => line.trim().length > 0).map((line, i) => {
+              const cleanLine = line.replace(/^-/, '').trim();
+              const boldMatch = cleanLine.match(/^\*\*(.*?)\*\*:(.*)/);
+    
+              return (
+                <div key={i} className="flex gap-3 items-start group">
+                  <div className="w-2.5 h-2.5 bg-teal-500 rounded-full mt-1.5 shrink-0 shadow-[0_0_8px_rgba(20,184,166,0.3)]"></div>
+                  {boldMatch ? (
+                    <span className="font-normal">
+                      <strong className="font-black text-slate-900 border-b-2 border-teal-100">{boldMatch[1]}</strong>: {boldMatch[2]}
+                    </span>
+                  ) : (
+                    <span className="font-bold">{cleanLine}</span>
+                  )}
+                </div>
+              );
 
               })}
 
