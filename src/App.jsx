@@ -1285,49 +1285,35 @@ const App = () => {
 
 
 
-  const callGemini = async (prompt, systemInstruction) => {
-
-    let retries = 0;
-
-    while (retries < 5) {
-
-      try {
-
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-
-          method: 'POST',
-
-          headers: { 'Content-Type': 'application/json' },
-
-          body: JSON.stringify({
-
-            contents: [{ parts: [{ text: prompt }] }],
-
-            systemInstruction: { parts: [{ text: systemInstruction }] }
-
-          })
-
-        });
-
-        if (!response.ok) throw new Error();
-
-        const data = await response.json();
-
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        return typeof text === 'string' ? text : "";
-
-      } catch (e) {
-
-        retries++;
-
-        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, retries)));
-
+const callGemini = async (prompt, systemInstruction) => {
+  let retries = 0;
+  while (retries < 5) {
+    try {
+      // UPDATED MODEL NAME BELOW
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          systemInstruction: { parts: [{ text: systemInstruction }] }
+        })
+      });
+      
+      if (!response.ok) {
+        const errData = await response.json();
+        console.error("Gemini Error Details:", errData);
+        throw new Error(`API Error: ${response.status}`);
       }
-
+      
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      return typeof text === 'string' ? text : "";
+    } catch (e) {
+      retries++;
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, retries)));
     }
-
-  };
+  }
+};
 
 
 
