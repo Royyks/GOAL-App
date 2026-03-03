@@ -636,23 +636,35 @@ const HomeView = ({ t, lang, setView, startScanner, toggleLang, handleCategoryCl
         <h1 className="text-xl font-black tracking-tighter flex items-center gap-2">
 
           <h1 className="text-xl font-black tracking-tighter flex items-center gap-3">
-            {/* The Mascot acts as the hidden button */}
+            {/* Mascot remains the hidden trigger */}
             <WatsonsMascot 
-              className="w-9 h-9 cursor-pointer active:scale-95 transition-transform" 
+              className="w-9 h-9 cursor-pointer active:scale-90 transition-transform" 
               onClick={() => setIsMockMode(!isMockMode)} 
             />
             
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="leading-none">{t.appTitle}</span>
-                {/* The Status Orb: Teal when Mock is ON, Gray when OFF */}
-                <div className={`w-2 h-2 rounded-full transition-colors duration-500 ${isMockMode ? 'bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.8)]' : 'bg-slate-700'}`} />
+                <span className="leading-none text-slate-900">{t.appTitle}</span>
+                
+                {/* --- THE STATUS ORB --- */}
+                <div className={`w-2.5 h-2.5 rounded-full transition-all duration-500 border border-black/10
+                  ${isMockMode 
+                    ? 'bg-orange-500 shadow-[0_0_8px_#f97316] scale-110' // Mock Color
+                    : 'bg-slate-300 shadow-inner'                      // Live/Default Color
+                  }`} 
+                />
               </div>
               
-              {/* Micro-text status label for "Pro" look */}
-              <span className={`text-[7px] font-black uppercase tracking-[0.15em] mt-1 transition-opacity duration-500 ${isMockMode ? 'text-teal-400 opacity-100' : 'text-slate-500 opacity-40'}`}>
-                {isMockMode ? "HHT_OFFLINE_CACHE" : "HHT_CLOUD_SYNC"}
-              </span>
+              {/* Dynamic Status Label */}
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className={`text-[8px] font-black px-1 rounded-sm tracking-tighter transition-colors
+                  ${isMockMode 
+                    ? 'bg-orange-100 text-orange-600' 
+                    : 'bg-slate-100 text-slate-500'}`}>
+                  {isMockMode ? "MOCK_DATA" : "LIVE_API"}
+                </span>
+                <span className="text-[6px] text-slate-400 font-mono">v3.0.1</span>
+              </div>
             </div>
           </h1>
 
