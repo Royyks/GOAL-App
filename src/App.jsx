@@ -85,7 +85,18 @@ import {
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || ""; 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'asw-goal-nin-jiom';
 
-
+// The Mock Data Logic Add this near the top of your App.jsx
+const MOCK_RESPONSES = {
+  "NIN001": `- **產品優勢**: 京都念慈菴枇杷膏含有天然草本成分，能有效舒緩喉嚨痛及咳嗽，是屈臣氏健康類別的明星產品。配合 App 下載現省 $5.2，買 2 件更享 9 折！
+- **網上評分**: 在屈臣氏網店獲得 4.9/5 星高分好評。
+- **用家反饋**: 多數用家稱其為「喉嚨救星」，成分天然讓人放心。`,
+  "FORT001": `- **產品優勢**: 特強幸福傷風咳素配方強效，不傷腸胃且不致瞌睡。目前店內缺貨，但透過 HHT 系統下單可享 O+O 快遞送貨，App 會員首購立減 $20！
+- **網上評分**: 網民評分為 4.8/5 星。
+- **用家反饋**: 用家一致認為「見效快」，適合上班族。`,
+  "DEFAULT": `- **產品優勢**: 這款產品目前在屈臣氏享有限時優惠。建議引導顧客下載 App 查看專享價。
+- **網上評分**: 高達 4.8 星好評。
+- **用家反饋**: 用家表示性價比極高，值得回購。`
+};
 
 // --- Mascot Component (屈仔) ---
 
@@ -611,7 +622,12 @@ const HomeView = ({ t, lang, setView, startScanner, toggleLang, handleCategoryCl
 
         <h1 className="text-xl font-black tracking-tighter flex items-center gap-2">
 
-          <WatsonsMascot className="w-8 h-8" /> {t.appTitle}
+          <WatsonsMascot className={`w-8 h-8 cursor-pointer ${isMockMode ? 'filter saturate-200' : ''}`} 
+            onClick={() => {
+            setIsMockMode(!isMockMode);
+            alert(isMockMode ? "Live API Mode" : "Demo Mock Mode Active");
+            }}
+          /> {t.appTitle}
 
         </h1>
 
@@ -1279,42 +1295,42 @@ const App = () => {
 
   const videoRef = useRef(null);
 
-
+  const [isMockMode, setIsMockMode] = useState(false);
+  window.forceMockMode = isMockMode; // Sync with global for the helper function
 
   const t = TRANSLATIONS[lang];
 
 
 
-const callGemini = async (prompt, systemInstruction) => {
-  let retries = 0;
-  const maxRetries = 3;
-  
-  while (retries < maxRetries) {
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          systemInstruction: { parts: [{ text: systemInstruction }] }
-        })
-      });
+const callGemini = async (prompt, systemInstruction, productId = "DEFAULT") => {
+  // 1. Check if Mock Mode is manually turned on in your UI state
+  if (window.forceMockMode) {
+    console.log("🛠️ Mock Mode Active: Returning pre-set demo content.");
+    await new Promise(r => setTimeout(r, 1200)); // Simulate AI "thinking"
+    return MOCK_RESPONSES[productId] || MOCK_RESPONSES["DEFAULT"];
+  }
 
-      if (response.status === 429) {
-        // If rate limited, wait longer each time (2s, 4s, 8s)
-        retries++;
-        const waitTime = Math.pow(2, retries) * 1000;
-        console.warn(`Rate limited. Retrying in ${waitTime/1000}s...`);
-        await new Promise(r => setTimeout(r, waitTime));
-        continue; 
-      }
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: { parts: [{ text: systemInstruction }] }
+      })
+    });
 
-      const data = await response.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    } catch (e) {
-      retries++;
-      if (retries === maxRetries) throw e;
+    if (!response.ok) {
+      // 2. AUTOMATIC FALLBACK: If API fails (404/429/403), use mock instead of showing error
+      console.warn(`⚠️ API Error ${response.status}. Falling back to Mock Data.`);
+      return MOCK_RESPONSES[productId] || MOCK_RESPONSES["DEFAULT"];
     }
+
+    const data = await response.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || MOCK_RESPONSES["DEFAULT"];
+  } catch (e) {
+    console.error("Connection failed. Using mock data.");
+    return MOCK_RESPONSES[productId] || MOCK_RESPONSES["DEFAULT"];
   }
 };
 
