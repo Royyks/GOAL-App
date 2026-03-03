@@ -612,7 +612,7 @@ const MOCK_DATA = {
 
 
 
-const HomeView = ({ t, lang, setView, startScanner, toggleLang, handleCategoryClick }) => (
+const HomeView = ({ t, lang, setView, startScanner, toggleLang, handleCategoryClick, isMockMode, setIsMockMode }) => (
 
   <div className="flex flex-col h-full bg-slate-50 overflow-y-auto pb-10">
 
