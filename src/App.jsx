@@ -622,12 +622,22 @@ const HomeView = ({ t, lang, setView, startScanner, toggleLang, handleCategoryCl
 
         <h1 className="text-xl font-black tracking-tighter flex items-center gap-2">
 
-          <WatsonsMascot className={`w-8 h-8 cursor-pointer ${isMockMode ? 'filter saturate-200' : ''}`} 
-            onClick={() => {
-            setIsMockMode(!isMockMode);
-            alert(isMockMode ? "Live API Mode" : "Demo Mock Mode Active");
-            }}
-          /> {t.appTitle}
+          <h1 className="text-xl font-black tracking-tighter flex items-center gap-2">
+            <WatsonsMascot 
+              // This adds a visual glow when Mock Mode is ON
+              className={`w-8 h-8 cursor-pointer transition-all ${isMockMode ? 'drop-shadow-[0_0_8px_rgba(20,184,166,0.8)] saturate-150' : ''}`} 
+              // This makes the mascot clickable to toggle modes
+              onClick={() => {
+                const nextMode = !isMockMode;
+                setIsMockMode(nextMode);
+                // Optional: Add a small toast or alert so you know it worked
+                console.log(nextMode ? "🛠️ Mock Mode Enabled" : "🌐 Live API Enabled");
+              }}
+            /> 
+            {t.appTitle}
+            {/* 3. Label: Shows a tiny 'MOCK' tag when active */}
+            {isMockMode && <span className="text-[8px] bg-orange-500 text-white px-1 rounded ml-1 animate-pulse">MOCK</span>}
+          </h1>
 
         </h1>
 
@@ -1553,20 +1563,20 @@ const callGemini = async (prompt, systemInstruction, productId = "DEFAULT") => {
     <div className="max-w-md mx-auto h-[800px] bg-white shadow-2xl rounded-[60px] overflow-hidden border-[12px] border-slate-900 relative my-10 font-sans select-none">
 
       {view === 'home' && (
-
         <HomeView 
-
-          t={t} lang={lang} successCount={successCount} 
-
-          setView={setView} startScanner={startScanner} toggleLang={toggleLang}
-
+          t={t} 
+          lang={lang} 
+          // --- ADD THESE TWO PROPS ---
+          isMockMode={isMockMode} 
+          setIsMockMode={setIsMockMode} 
+          // ---------------------------
+          setView={setView} 
+          startScanner={startScanner} 
+          toggleLang={toggleLang}
           handleCategoryClick={handleCategoryClick}
-
         />
-
-      )}
-
-      
+        )
+      }
 
       {view === 'scanner' && (
 
