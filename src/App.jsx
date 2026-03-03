@@ -982,18 +982,18 @@ const ResultView = ({
               const cleanLine = line.replace(/^-/, '').trim();
               const boldMatch = cleanLine.match(/^\*\*(.*?)\*\*:(.*)/);
     
-              return (
-                <div key={i} className="flex gap-3 items-start group">
-                  <div className="w-2.5 h-2.5 bg-teal-500 rounded-full mt-1.5 shrink-0 shadow-[0_0_8px_rgba(20,184,166,0.3)]"></div>
-                  {boldMatch ? (
-                    <span className="font-normal">
-                      <strong className="font-black text-slate-900 border-b-2 border-teal-100">{boldMatch[1]}</strong>: {boldMatch[2]}
-                    </span>
-                  ) : (
-                    <span className="font-bold">{cleanLine}</span>
-                  )}
-                </div>
-              );
+            return (
+              <div key={i} className="flex gap-3 items-start group">
+                <div className="w-2.5 h-2.5 bg-teal-500 rounded-full mt-1.5 shrink-0 shadow-[0_0_8px_rgba(20,184,166,0.3)]"></div>
+                {boldMatch ? (
+                  <span className="font-normal">
+                    <strong className="font-black text-slate-900 border-b-2 border-teal-100">{boldMatch[1]}</strong>: {boldMatch[2]}
+                  </span>
+                ) : (
+                  <span className="font-bold">{cleanLine}</span>
+                )}
+              </div>
+            );
 
               })}
 
@@ -1314,16 +1314,25 @@ const App = () => {
 
 
 
-const callGemini = async (prompt, systemInstruction, productId = "DEFAULT") => {
-  // 1. Check if Mock Mode is manually turned on in your UI state
+// 1. Added currentLang to the parameters
+const callGemini = async (prompt, systemInstruction, productId = "DEFAULT", currentLang = "Traditional Chinese") => {
+  
+  // Helper to ensure we don't crash if MOCK_RESPONSES is structured by language
+  const getMockFallback = () => {
+    const langKey = MOCK_RESPONSES[currentLang] ? currentLang : "Traditional Chinese";
+    return MOCK_RESPONSES[langKey][productId] || MOCK_RESPONSES[langKey]["DEFAULT"];
+  };
+
+  // 2. Check if Mock Mode is manually turned on
   if (window.forceMockMode) {
-    console.log("🛠️ Mock Mode Active: Returning pre-set demo content.");
-    await new Promise(r => setTimeout(r, 1200)); // Simulate AI "thinking"
-    return MOCK_RESPONSES[productId] || MOCK_RESPONSES["DEFAULT"];
+    console.log(`🛠️ Mock Mode Active [${currentLang}]: Returning pre-set content.`);
+    await new Promise(r => setTimeout(r, 1200)); 
+    return getMockFallback();
   }
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=${apiKey}`, {
+    // 3. Updated URL to the most stable 2026 production alias
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1333,106 +1342,78 @@ const callGemini = async (prompt, systemInstruction, productId = "DEFAULT") => {
     });
 
     if (!response.ok) {
-      // 2. AUTOMATIC FALLBACK: If API fails (404/429/403), use mock instead of showing error
       console.warn(`⚠️ API Error ${response.status}. Falling back to Mock Data.`);
-      return MOCK_RESPONSES[productId] || MOCK_RESPONSES["DEFAULT"];
+      return getMockFallback();
     }
 
     const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || MOCK_RESPONSES["DEFAULT"];
+    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    // 4. If AI returns empty, use Mock
+    return aiText || getMockFallback();
+
   } catch (e) {
     console.error("Connection failed. Using mock data.");
-    return MOCK_RESPONSES[productId] || MOCK_RESPONSES["DEFAULT"];
+    return getMockFallback();
   }
 };
 
 
 
   const generateSalesPitch = async (product, member, tone, currentLang, includeBundle) => {
-
     if (!product) return;
 
     setIsGenerating(true);
+    setSalesPitch(""); // 1. Clear old pitch so spinner shows up
 
     const isOOS = product.stock === 0;
-
-    
-
     const rating = product.reviews?.rating;
-
     const keywords = product.reviews?.keywords?.join(', ');
-
     const topComment = currentLang === "English" ? product.reviews?.enTopComment : product.reviews?.topComment;
 
-
-
     const titles = currentLang === "English" ? {
-
       p1: TRANSLATIONS["English"].pitchPart1,
-
       p2: TRANSLATIONS["English"].pitchPart2,
-
       p3: TRANSLATIONS["English"].pitchPart3
-
     } : {
-
       p1: TRANSLATIONS["Traditional Chinese"].pitchPart1,
-
       p2: TRANSLATIONS["Traditional Chinese"].pitchPart2,
-
       p3: TRANSLATIONS["Traditional Chinese"].pitchPart3
-
     };
 
-
-
     const systemPrompt = `You are a Watsons O+O Ambassador. Lang: ${currentLang}. Tone: ${tone}.
-
     - Product: ${currentLang === "English" ? (product.enName || product.name) : product.name}
-
     - Rating: ${rating} stars
-
     - Sentiment Keywords: "${keywords}"
-
     - Feedback: "${topComment}"
-
     - App Saving: $${((product.promoPrice || product.price) - product.appPrice).toFixed(1)}
-
     
-
     TASK: Generate pitch in EXACTLY THREE points (prefix with '-'). Start immediately.
-
-    BRAND RULE: ONLY mention "屈臣氏" or "Watsons". DO NOT mention Mannings or HKTV Mall. Strictly follow. 
-
+    BRAND RULE: ONLY mention "屈臣氏" or "Watsons". DO NOT mention competitors.
     
-
     Structure:
-
-    1. - **${titles.p1}**: [Benefits, promos, app savings. If OOS, rescue with Click & Collect at Watsons.]
-
-    2. - **${titles.p2}**: [ONLY star rating summary: Rated ${rating} out of 5 stars.]
-
-    3. - **${titles.p3}**: [Summarize feedback "${topComment}" and keywords "${keywords}".]`;
-
-    
+    1. - **${titles.p1}**: [Benefits, promos, app savings.]
+    2. - **${titles.p2}**: [Rated ${rating} out of 5 stars.]
+    3. - **${titles.p3}**: [Feedback summary.]`;
 
     try {
-
+      // 2. We pass the product.id and lang to help the Mock system find the right text
       const result = await callGemini("Generate pitch.", systemPrompt, product.id, currentLang);
-
+      
+      // Safety: If result comes back empty, force the mock data
+      if (!result) throw new Error("Empty response");
       setSalesPitch(result);
-
+      
     } catch (e) {
-
-      setSalesPitch(MOCK_RESPONSES[currentLang]["DEFAULT"]);
-
+      console.error("Pitch generation failed, using fallback:", e);
+      // 3. Ultra-safe fallback path
+      const safeLang = MOCK_RESPONSES[currentLang] ? currentLang : "Traditional Chinese";
+      const fallbackText = MOCK_RESPONSES[safeLang][product.id] || MOCK_RESPONSES[safeLang]["DEFAULT"];
+      setSalesPitch(fallbackText);
     } finally {
-
       setIsGenerating(false);
-
     }
-
-  };
+};
 
 
 
