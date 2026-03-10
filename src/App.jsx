@@ -1328,7 +1328,6 @@ const App = () => {
 
 // 1. Added currentLang to the parameters
 const callGemini = async (prompt, systemInstruction, productId = "DEFAULT", currentLang = "Traditional Chinese") => {
-  
   // Helper to ensure we don't crash if MOCK_RESPONSES is structured by language
   const getMockFallback = () => {
     const langKey = MOCK_RESPONSES[currentLang] ? currentLang : "Traditional Chinese";
@@ -1337,26 +1336,19 @@ const callGemini = async (prompt, systemInstruction, productId = "DEFAULT", curr
 
   // 2. Check if Mock Mode is manually turned on
   if (window.forceMockMode) {
-    console.log(`🛠️ Mock Mode Active [${currentLang}]: Returning pre-set content.`);
     await new Promise(r => setTimeout(r, 1200)); 
     return getMockFallback();
   }
 
   try {
-    // 3. Updated URL to the most stable 2026 production alias
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    // NOTICE: We call our local API route now, not Google's URL
+    const response = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        systemInstruction: { parts: [{ text: systemInstruction }] }
-      })
+      body: JSON.stringify({ prompt, systemInstruction })
     });
 
-    if (!response.ok) {
-      console.warn(`⚠️ API Error ${response.status}. Falling back to Mock Data.`);
-      return getMockFallback();
-    }
+    if (!response.ok) throw new Error("Server Error");
 
     const data = await response.json();
     const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -1365,12 +1357,10 @@ const callGemini = async (prompt, systemInstruction, productId = "DEFAULT", curr
     return aiText || getMockFallback();
 
   } catch (e) {
-    console.error("Connection failed. Using mock data.");
+    console.error("Regional block or connection failed. Using mock.");
     return getMockFallback();
   }
 };
-
-
 
   const generateSalesPitch = async (product, member, tone, currentLang, includeBundle) => {
     if (!product) return;
